@@ -1,97 +1,66 @@
 # Deployment Guide
 
-## Vercel Deployment (Frontend Only)
+## Quick Deploy (5 Minutes)
 
-The current configuration deploys the frontend to Vercel. The backend needs to be deployed separately.
+Everything auto-initializes on first startup. ChromaDB data and scraped articles are included in the repo.
 
-### Prerequisites
+### Step 1: Deploy Backend to Railway
 
-1. Install Vercel CLI: `npm install -g vercel`
-2. Have your API keys ready:
-   - OpenAI API key
-   - Anthropic API key
+1. Go to [railway.app](https://railway.app)
+2. Click "New Project" → "Deploy from GitHub repo"
+3. Select `welfvh/11-prompt`
+4. Configure:
+   - **Root Directory**: `backend`
+   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+5. Add environment variables:
+   - `ANTHROPIC_API_KEY` = your key
+   - `OPENAI_API_KEY` = your key
+6. Deploy and copy the URL (e.g., `https://your-app.up.railway.app`)
 
-### Option 1: Deploy Frontend to Vercel + Backend Separately
+### Step 2: Deploy Frontend to Vercel
 
-#### Deploy Frontend
+1. Go to [vercel.com](https://vercel.com)
+2. Click "New Project" → Import `welfvh/11-prompt` from GitHub
+3. Vercel auto-detects the `vercel.json` config
+4. Add environment variable:
+   - `VITE_API_BASE_URL` = `https://your-railway-url.up.railway.app/api`
+5. Deploy!
 
-1. Push code to GitHub (already done)
-2. Import project in Vercel dashboard
-3. Configure build settings:
-   - Build Command: `cd frontend && npm install && npm run build`
-   - Output Directory: `frontend/dist`
-   - Install Command: `cd frontend && npm install`
+### Done!
 
-4. Set environment variable:
-   - `VITE_API_BASE_URL` = Your backend URL (e.g., `https://your-backend.railway.app/api`)
+Access your app at the Vercel URL from any browser, including your work laptop.
 
-#### Deploy Backend Options
+---
 
-**Option A: Railway**
-1. Create account at railway.app
-2. Create new project from GitHub repo
-3. Set root directory to `backend`
-4. Add environment variables:
-   - `ANTHROPIC_API_KEY`
-   - `OPENAI_API_KEY`
-5. Railway will auto-detect Python and deploy
+## Alternative Backend Hosting
 
-**Option B: Render**
-1. Create account at render.com
-2. New Web Service from GitHub
-3. Set:
-   - Root Directory: `backend`
-   - Build Command: `pip install -r requirements.txt`
-   - Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-4. Add environment variables
+### Render
+- Root Directory: `backend`
+- Build: `pip install -r requirements.txt`
+- Start: `uvicorn main:app --host 0.0.0.0 --port $PORT`
 
-**Option C: Fly.io**
+### Fly.io
 ```bash
 cd backend
 fly launch
-# Follow prompts
 fly secrets set ANTHROPIC_API_KEY=your_key
 fly secrets set OPENAI_API_KEY=your_key
 fly deploy
 ```
 
-### Option 2: Full Stack on Vercel (Requires Restructuring)
+---
 
-To deploy both frontend and backend on Vercel, we'd need to:
-
-1. Convert backend to Vercel serverless functions
-2. Replace ChromaDB with a hosted vector DB (Pinecone, Supabase, etc.)
-3. Restructure project for Vercel's architecture
-
-This requires more significant changes. Let me know if you want this approach.
-
-## Environment Variables
-
-### Frontend (.env)
-```
-VITE_API_BASE_URL=http://localhost:8000/api  # Local
-# or
-VITE_API_BASE_URL=https://your-backend.com/api  # Production
-```
-
-### Backend (.env)
-```
-ANTHROPIC_API_KEY=sk-ant-...
-OPENAI_API_KEY=sk-...
-```
-
-## Current Architecture
+## Architecture
 
 ```
 ┌─────────────────┐
-│  Vercel         │
+│  Vercel         │  ← Access from work laptop
 │  (Frontend)     │
 └────────┬────────┘
-         │
-         │ HTTP/SSE
+         │ HTTPS
          │
 ┌────────▼────────┐
-│  Railway/Render │
+│  Railway        │
 │  (Backend)      │
 │  - FastAPI      │
 │  - ChromaDB     │
@@ -99,15 +68,10 @@ OPENAI_API_KEY=sk-...
 └─────────────────┘
 ```
 
-## Next Steps
+## Features
 
-1. Choose backend hosting option
-2. Deploy backend
-3. Update frontend `VITE_API_BASE_URL` in Vercel
-4. Test deployment
-
-## Notes
-
-- ChromaDB data persists in the backend filesystem
-- For production, consider using a managed vector DB
-- Backend needs persistent storage for prompt configurations
+- ✅ Auto-loads scraped 1&1 articles on startup
+- ✅ Intent recognition for smart queries
+- ✅ Multi-model support (GPT, Claude, o1)
+- ✅ Real-time streaming
+- ✅ No local setup needed - works from any browser
