@@ -26,7 +26,7 @@ export class ApiService {
         model,
         prompt_id: promptId || 'default',
         stream: true,
-        model_config: modelConfig || {},
+        model_params: modelConfig || {},
       } as ChatRequest),
     });
 

@@ -76,7 +76,7 @@ export interface ChatRequest {
   model: string;
   prompt_id?: string;
   stream?: boolean;
-  model_config?: Record<string, any>;
+  model_params?: Record<string, any>;
 }
 
 export interface StreamEvent {
