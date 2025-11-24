@@ -85,7 +85,7 @@ class ChatRequest(BaseModel):
     model: str
     prompt_id: Optional[str] = "default"
     stream: bool = True
-    model_config: Optional[Dict[str, Any]] = None
+    model_params: Optional[Dict[str, Any]] = None  # Renamed from model_config (reserved in Pydantic v2)
 
 
 class PromptConfig(BaseModel):
@@ -127,7 +127,7 @@ async def chat(request: ChatRequest):
                     messages=messages_dict,
                     model=request.model,
                     prompt_id=request.prompt_id,
-                    model_config=request.model_config or {}
+                    model_config=request.model_params or {}
                 ),
                 media_type="text/event-stream"
             )
@@ -136,7 +136,7 @@ async def chat(request: ChatRequest):
                 messages=messages_dict,
                 model=request.model,
                 prompt_id=request.prompt_id,
-                model_config=request.model_config or {}
+                model_config=request.model_params or {}
             )
             return response
     except Exception as e:
