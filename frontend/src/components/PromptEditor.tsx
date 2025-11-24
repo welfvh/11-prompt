@@ -211,7 +211,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
       <CardContent className="flex-1 overflow-y-auto">
         {!currentPrompt ? (
           <div className="text-center text-muted-foreground py-8">
-            Prompt auswählen oder erstellen
+            Prompt wird geladen...
           </div>
         ) : (
           <div className="space-y-6">
