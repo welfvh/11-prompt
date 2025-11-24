@@ -6,16 +6,25 @@ Everything auto-initializes on first startup. ChromaDB data and scraped articles
 
 ### Step 1: Deploy Backend to Railway
 
+**Option A: Via Web Dashboard**
 1. Go to [railway.app](https://railway.app)
 2. Click "New Project" → "Deploy from GitHub repo"
 3. Select `welfvh/11-prompt`
-4. Configure:
-   - **Root Directory**: `backend`
-   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-5. Add environment variables:
+4. Railway auto-detects `railway.toml` config ✅
+5. Add environment variables in dashboard:
    - `ANTHROPIC_API_KEY` = your key
    - `OPENAI_API_KEY` = your key
 6. Deploy and copy the URL (e.g., `https://your-app.up.railway.app`)
+
+**Option B: Via CLI**
+```bash
+npm install -g @railway/cli
+railway login
+railway init
+railway variables set ANTHROPIC_API_KEY=sk-ant-...
+railway variables set OPENAI_API_KEY=sk-...
+railway up
+```
 
 ### Step 2: Deploy Frontend to Vercel
 
