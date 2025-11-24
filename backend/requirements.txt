@@ -1,9 +1,9 @@
 # Backend dependencies for 11-prompt project
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-python-dotenv==1.0.0
-pydantic==2.5.0
-pydantic-settings==2.1.0
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-dotenv>=1.0.0
+pydantic>=2.10.0
+pydantic-settings>=2.6.0
 
 # AI SDKs
 anthropic>=0.74.0
@@ -13,12 +13,12 @@ openai>=2.8.0
 chromadb==0.4.18
 numpy<2.0  # Required for ChromaDB compatibility
 
-# Web scraping
-beautifulsoup4==4.12.2
-requests==2.31.0
-lxml==4.9.3
-playwright==1.40.0
+# Web scraping (optional - for local data collection only)
+beautifulsoup4>=4.12.0
+requests>=2.32.0
+lxml>=5.3.0
+playwright>=1.49.0
 
 # Utilities
-python-multipart==0.0.6
-aiofiles==23.2.1
+python-multipart>=0.0.12
+aiofiles>=24.0.0
