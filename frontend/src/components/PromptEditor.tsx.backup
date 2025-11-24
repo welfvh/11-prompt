@@ -1,0 +1,299 @@
+/**
+ * German translation wrapper for PromptEditor
+ */
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { ApiService } from '@/services/api';
+import type { PromptConfig } from '@/types';
+import { Save, Plus, Trash2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+interface PromptEditorProps {
+  selectedPromptId: string;
+  onPromptChange: (promptId: string) => void;
+  onPromptUpdated: () => void;
+}
+
+export const PromptEditor: React.FC<PromptEditorProps> = ({
+  selectedPromptId,
+  onPromptChange,
+  onPromptUpdated,
+}) => {
+  const [prompts, setPrompts] = useState<PromptConfig[]>([]);
+  const [currentPrompt, setCurrentPrompt] = useState<PromptConfig | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    loadPrompts();
+  }, []);
+
+  useEffect(() => {
+    if (selectedPromptId) {
+      loadPrompt(selectedPromptId);
+    }
+  }, [selectedPromptId]);
+
+  const loadPrompts = async () => {
+    try {
+      const data = await ApiService.listPrompts();
+      setPrompts(data);
+    } catch (error) {
+      console.error('Error loading prompts:', error);
+    }
+  };
+
+  const loadPrompt = async (id: string) => {
+    setIsLoading(true);
+    try {
+      const data = await ApiService.getPrompt(id);
+      setCurrentPrompt(data);
+    } catch (error) {
+      console.error('Error loading prompt:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!currentPrompt) return;
+
+    setIsSaving(true);
+    try {
+      if (prompts.find((p) => p.id === currentPrompt.id)) {
+        await ApiService.updatePrompt(currentPrompt.id, currentPrompt);
+      } else {
+        await ApiService.createPrompt(currentPrompt);
+      }
+      await loadPrompts();
+      onPromptUpdated();
+    } catch (error) {
+      console.error('Error saving prompt:', error);
+      alert('Fehler beim Speichern: ' + (error instanceof Error ? error.message : 'Unbekannter Fehler'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCreateNew = () => {
+    const newPrompt: PromptConfig = {
+      id: `prompt_${Date.now()}`,
+      name: 'Neuer Prompt',
+      tone: '',
+      behavior: '',
+      use_case: '',
+      system_prompt: '',
+      additional_instructions: '',
+      metadata: { author: 'user', tags: [] },
+    };
+    setCurrentPrompt(newPrompt);
+    onPromptChange(newPrompt.id);
+  };
+
+  const handleDelete = async () => {
+    if (!currentPrompt || !confirm('Möchten Sie diesen Prompt wirklich löschen?')) return;
+
+    try {
+      await ApiService.deletePrompt(currentPrompt.id);
+      await loadPrompts();
+      if (prompts.length > 0) {
+        onPromptChange(prompts[0].id);
+      }
+      onPromptUpdated();
+    } catch (error) {
+      console.error('Error deleting prompt:', error);
+      alert('Fehler beim Löschen: ' + (error instanceof Error ? error.message : 'Unbekannter Fehler'));
+    }
+  };
+
+  const updatePrompt = (updates: Partial<PromptConfig>) => {
+    if (!currentPrompt) return;
+    setCurrentPrompt({ ...currentPrompt, ...updates });
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="h-full">
+        <CardContent className="p-6">
+          <div className="text-center text-muted-foreground">Lädt...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Prompt-Konfiguration</CardTitle>
+            <CardDescription>
+              Ton, Verhalten und Anweisungen konfigurieren
+            </CardDescription>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={handleCreateNew} size="sm" variant="outline">
+              <Plus className="h-4 w-4 mr-1" />
+              Neu
+            </Button>
+            {currentPrompt && currentPrompt.id !== 'default' && (
+              <Button onClick={handleDelete} size="sm" variant="destructive">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="flex-1 overflow-y-auto">
+        {!currentPrompt ? (
+          <div className="text-center text-muted-foreground py-8">
+            Prompt auswählen oder erstellen
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="prompt-select">Prompt auswählen</Label>
+              <Select
+                value={currentPrompt.id}
+                onValueChange={(value) => onPromptChange(value)}
+              >
+                <SelectTrigger id="prompt-select">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {prompts.map((prompt) => (
+                    <SelectItem key={prompt.id} value={prompt.id}>
+                      {prompt.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="prompt-name">Name</Label>
+              <Input
+                id="prompt-name"
+                value={currentPrompt.name}
+                onChange={(e) => updatePrompt({ name: e.target.value })}
+                placeholder="z.B. Kundenservice - Freundlich"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="use-case">Anwendungsfall</Label>
+              <Input
+                id="use-case"
+                value={currentPrompt.use_case}
+                onChange={(e) => updatePrompt({ use_case: e.target.value })}
+                placeholder="z.B. Allgemeine Kundenbetreuung, Technische Anfragen"
+              />
+            </div>
+
+            <Tabs defaultValue="tone" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="tone">Ton</TabsTrigger>
+                <TabsTrigger value="behavior">Verhalten</TabsTrigger>
+                <TabsTrigger value="system">System-Prompt</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="tone" className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="tone">Ton</Label>
+                  <Textarea
+                    id="tone"
+                    value={currentPrompt.tone}
+                    onChange={(e) => updatePrompt({ tone: e.target.value })}
+                    placeholder="z.B. professionell, freundlich, einfühlsam"
+                    rows={4}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Definieren Sie, wie der Assistent kommunizieren soll: Formalität, Emotionalität, Persönlichkeit.
+                  </p>
+                </div>
+
+                <div className="bg-muted p-3 rounded-md space-y-2 text-sm">
+                  <h4 className="font-medium">Beispiele:</h4>
+                  <ul className="space-y-1 list-disc list-inside text-muted-foreground">
+                    <li>Professionell und höflich</li>
+                    <li>Warm und gesprächig</li>
+                    <li>Direkt und effizient</li>
+                    <li>Geduldig und verständnisvoll</li>
+                  </ul>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="behavior" className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="behavior">Verhaltensrichtlinien</Label>
+                  <Textarea
+                    id="behavior"
+                    value={currentPrompt.behavior}
+                    onChange={(e) => updatePrompt({ behavior: e.target.value })}
+                    placeholder="z.B. Immer Kundenidentität prüfen, proaktive Lösungen anbieten"
+                    rows={6}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Was soll der Assistent tun und was nicht? Richtlinien für häufige Szenarien.
+                  </p>
+                </div>
+
+                <div className="bg-muted p-3 rounded-md space-y-2 text-sm">
+                  <h4 className="font-medium">Berücksichtigen Sie:</h4>
+                  <ul className="space-y-1 list-disc list-inside text-muted-foreground">
+                    <li>Antwortstruktur (Begrüßung, Problem, Lösung, Abschluss)</li>
+                    <li>Wann an menschliche Agents eskalieren</li>
+                    <li>Umgang mit Unsicherheit</li>
+                    <li>Datenschutz und Sicherheit</li>
+                  </ul>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="system" className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="system-prompt">System-Prompt</Label>
+                  <Textarea
+                    id="system-prompt"
+                    value={currentPrompt.system_prompt}
+                    onChange={(e) => updatePrompt({ system_prompt: e.target.value })}
+                    placeholder="Du bist ein Kundenservice-Assistent..."
+                    rows={12}
+                    className="font-mono text-sm"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Der vollständige System-Prompt für das KI-Modell. Kombiniert Ton, Verhalten und spezifische Anweisungen.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="additional">Zusätzliche Anweisungen (Optional)</Label>
+                  <Textarea
+                    id="additional"
+                    value={currentPrompt.additional_instructions || ''}
+                    onChange={(e) => updatePrompt({ additional_instructions: e.target.value })}
+                    placeholder="Zusätzlicher Kontext oder Anweisungen..."
+                    rows={4}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <div className="flex justify-end pt-4 border-t">
+              <Button onClick={handleSave} disabled={isSaving}>
+                <Save className="h-4 w-4 mr-2" />
+                {isSaving ? 'Speichert...' : 'Prompt speichern'}
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
