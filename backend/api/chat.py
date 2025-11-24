@@ -25,9 +25,23 @@ class ChatService:
         self.prompt_manager = prompt_manager
         self.vector_db = vector_db
 
-        # Initialize API clients
-        self.anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-        self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        # Initialize API clients (optional - will fail at usage time if not set)
+        anthropic_key = os.getenv("ANTHROPIC_API_KEY")
+        openai_key = os.getenv("OPENAI_API_KEY")
+
+        if anthropic_key:
+            self.anthropic_client = Anthropic(api_key=anthropic_key)
+            logger.info("Anthropic client initialized")
+        else:
+            self.anthropic_client = None
+            logger.warning("ANTHROPIC_API_KEY not set - Claude models will not work")
+
+        if openai_key:
+            self.openai_client = OpenAI(api_key=openai_key)
+            logger.info("OpenAI client initialized")
+        else:
+            self.openai_client = None
+            logger.warning("OPENAI_API_KEY not set - OpenAI models will not work")
 
     async def _analyze_intent(self, messages: List[Dict[str, str]]) -> Dict[str, Any]:
         """
@@ -64,6 +78,10 @@ Beispiele:
 """
 
             # Use fast model for intent analysis (gpt-4o-mini)
+            if not self.openai_client:
+                logger.warning("OpenAI client not available, skipping intent analysis")
+                return {"needs_search": True, "query": messages[-1]["content"]}
+
             response = self.openai_client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": intent_prompt}],
@@ -145,9 +163,15 @@ Beispiele:
 
             # Stream based on provider
             if model.startswith("gpt") or model.startswith("o1"):
+                if not self.openai_client:
+                    yield self._format_sse("error", {"message": "OpenAI API key not configured"})
+                    return
                 async for chunk in self._stream_openai(model, full_messages, model_config):
                     yield chunk
             elif model.startswith("claude"):
+                if not self.anthropic_client:
+                    yield self._format_sse("error", {"message": "Anthropic API key not configured"})
+                    return
                 async for chunk in self._stream_anthropic(model, full_messages, model_config):
                     yield chunk
             else:
