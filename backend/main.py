@@ -17,10 +17,10 @@ from vector_db.chroma_client import VectorDBClient
 
 app = FastAPI(title="11-Prompt API", version="1.0.0")
 
-# CORS configuration for local development
+# CORS configuration - allow all origins for deployment
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=["*"],  # Allow all origins for production access
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -30,6 +30,48 @@ app.add_middleware(
 prompt_manager = PromptManager()
 vector_db = VectorDBClient()
 chat_service = ChatService(prompt_manager, vector_db)
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize vector DB with scraped data if collection is empty"""
+    stats = vector_db.get_stats()
+
+    if stats.get("document_count", 0) == 0:
+        print("Vector DB is empty, loading scraped articles...")
+
+        # Load scraped articles
+        data_file = Path(__file__).parent.parent / "data" / "scraped_articles.json"
+
+        if data_file.exists():
+            with open(data_file, "r", encoding="utf-8") as f:
+                articles = json.load(f)
+
+            # Prepare data for ChromaDB
+            documents = []
+            metadatas = []
+            ids = []
+
+            for article in articles:
+                if article.get("content"):
+                    documents.append(article["content"])
+                    metadatas.append({
+                        "title": article.get("title", ""),
+                        "url": article.get("url", ""),
+                        "source": "1&1 Helpdesk"
+                    })
+                    # Generate ID from URL or title
+                    article_id = article.get("url", "").split("/")[-1] or f"article_{len(ids)}"
+                    ids.append(article_id)
+
+            if documents:
+                result = vector_db.add_documents(documents, metadatas, ids)
+                print(f"Loaded {len(documents)} articles into vector DB")
+                print(f"Result: {result}")
+        else:
+            print(f"Warning: Scraped articles file not found at {data_file}")
+    else:
+        print(f"Vector DB already has {stats.get('document_count')} documents")
 
 
 # Request/Response models
