@@ -1,13 +1,12 @@
 /**
  * Main application - improved layout with dev mode
  */
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ChatInterface } from './components/ChatInterface';
 import { PromptEditor } from './components/PromptEditor';
 import { ModelSelector } from './components/ModelSelector';
-import { DevModePanel } from './components/DevModePanel';
 import type { ModelConfig } from './types';
-import { Settings, Code } from 'lucide-react';
+import { Code } from 'lucide-react';
 import { Button } from './components/ui/button';
 
 function App() {
@@ -15,10 +14,9 @@ function App() {
   const [selectedPromptId, setSelectedPromptId] = useState<string>('default');
   const [modelConfig, setModelConfig] = useState<Record<string, any>>({});
   const [devMode, setDevMode] = useState<boolean>(true); // Dev mode on by default
-  const [devLogs, setDevLogs] = useState<any[]>([]);
 
-  const addDevLog = (log: any) => {
-    setDevLogs(prev => [...prev, { ...log, timestamp: new Date().toISOString() }]);
+  const addDevLog = (_log: any) => {
+    // Dev logs are now displayed inline in chat messages
   };
 
   return (

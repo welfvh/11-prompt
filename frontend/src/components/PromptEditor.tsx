@@ -2,16 +2,15 @@
  * Prompt editor - vertical layout, all sections visible
  * Auto-assembles system prompt from components
  */
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { ApiService } from '@/services/api';
 import type { PromptConfig } from '@/types';
-import { Save, Plus, Trash2, Download, ChevronDown, ChevronRight } from 'lucide-react';
+import { Save, Trash2, Download, ChevronDown, ChevronRight } from 'lucide-react';
 
 interface PromptEditorProps {
   selectedPromptId: string;
@@ -142,7 +141,8 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const handleCreateNew = () => {
+  // Reserved for future "Create New" button functionality
+  const _handleCreateNew = () => {
     const newPrompt: PromptConfig = {
       id: `prompt_${Date.now()}`,
       name: 'Neuer Prompt',

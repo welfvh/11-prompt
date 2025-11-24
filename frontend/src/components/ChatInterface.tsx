@@ -8,7 +8,7 @@ import { Textarea } from './ui/textarea';
 import { ChatMessage } from './ChatMessage';
 import { ApiService } from '@/services/api';
 import type { ChatMessage as ChatMessageType, ToolCall, ModelConfig } from '@/types';
-import { Send, Loader2, Bot, RotateCcw, Copy, Check } from 'lucide-react';
+import { Send, Loader2, RotateCcw, Copy, Check } from 'lucide-react';
 
 interface ChatInterfaceProps {
   selectedModel: ModelConfig | null;
@@ -65,7 +65,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   const copyTranscript = async () => {
-    const transcript = messages.map((msg, idx) => {
+    const transcript = messages.map((msg) => {
       let text = `[${msg.role.toUpperCase()}]:\n${msg.content}\n`;
 
       if (devMode && msg.metadata) {
@@ -401,7 +401,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               disabled={!selectedModel || isLoading}
             />
             <Button
-              onClick={handleSend}
+              onClick={() => handleSend()}
               disabled={!input.trim() || !selectedModel || isLoading}
               size="icon"
               className="h-[76px] w-[76px] bg-[#003D8F] hover:bg-[#002a63] flex-shrink-0"
