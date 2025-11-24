@@ -3,7 +3,8 @@
  */
 import type { ChatMessage, PromptConfig, ModelConfig, ChatRequest, StreamEvent } from '@/types';
 
-const API_BASE = '/api';
+// Use environment variable for API base URL, fallback to relative path
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 export class ApiService {
   /**
