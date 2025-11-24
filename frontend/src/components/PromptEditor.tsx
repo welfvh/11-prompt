@@ -142,20 +142,20 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
   };
 
   // Reserved for future "Create New" button functionality
-  const _handleCreateNew = () => {
-    const newPrompt: PromptConfig = {
-      id: `prompt_${Date.now()}`,
-      name: 'Neuer Prompt',
-      tone: '',
-      behavior: '',
-      use_case: '',
-      system_prompt: '',
-      additional_instructions: '',
-      metadata: { author: 'user', tags: [] },
-    };
-    setCurrentPrompt(newPrompt);
-    onPromptChange(newPrompt.id);
-  };
+  // const handleCreateNew = () => {
+  //   const newPrompt: PromptConfig = {
+  //     id: `prompt_${Date.now()}`,
+  //     name: 'Neuer Prompt',
+  //     tone: '',
+  //     behavior: '',
+  //     use_case: '',
+  //     system_prompt: '',
+  //     additional_instructions: '',
+  //     metadata: { author: 'user', tags: [] },
+  //   };
+  //   setCurrentPrompt(newPrompt);
+  //   onPromptChange(newPrompt.id);
+  // };
 
   const handleDelete = async () => {
     if (!currentPrompt || !confirm('Möchten Sie diesen Prompt wirklich löschen?')) return;

@@ -1,7 +1,6 @@
 /**
  * Dev mode panel for debugging API calls and responses
  */
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { X, Trash2 } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
